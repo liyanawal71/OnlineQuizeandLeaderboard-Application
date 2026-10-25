@@ -255,7 +255,13 @@ a { color: var(--purple); }
       <div><h2>Quiz library</h2><p>Choose a subject and test your knowledge.</p></div>
     </div>
     <div id="all-subjects" class="subject-grid"></div>
-    <div class="notice">These are starter subject cards. Database-driven quizzes still need to be connected to the backend.</div>
+    <div id="quiz-message" class="notice hidden" role="status"></div>
+    <section id="quiz-area" class="panel hidden">
+      <button class="text-btn" onclick="loadTopics(true)">← Back to topics</button>
+      <h2 id="selected-topic-title" style="margin-top:16px;">Quiz</h2>
+      <p class="muted" style="margin:8px 0 16px;">Choose your answers. Scoring and saving attempts will be connected in the next step.</p>
+      <div id="question-list"></div>
+    </section>
   </section>
 
   <section id="leaderboard" class="page">
@@ -290,27 +296,67 @@ a { color: var(--purple); }
 </nav>
 
 <script>
-const subjects = [
-  { name: "Java Programming", desc: "OOP, classes and methods", icon: "💻", color: "violet" },
-  { name: "Data Structures", desc: "Arrays, trees and sorting", icon: "🧩", color: "blue" },
-  { name: "Database Systems", desc: "SQL, tables and queries", icon: "🗄️", color: "green" },
-  { name: "Software Engineering", desc: "Design, testing and models", icon: "⚙️", color: "orange" }
-];
-
 let authMode = "signin";
 let currentUser = null;
+let cachedTopics = [];
 
-function renderSubjects(elementId) {
+function escapeHtml(value) {
+  return String(value ?? "").replace(/[&<>"']/g, character => ({
+    "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;", "'": "&#39;"
+  })[character]);
+}
+
+function renderTopics(elementId, topics) {
   const element = document.getElementById(elementId);
+  if (!topics.length) {
+    element.innerHTML = '<div class="panel"><p class="muted">No topics are available yet. Please check back after the administrator adds topics.</p></div>';
+    return;
+  }
 
-  element.innerHTML = subjects.map(subject => `
+  const icons = ["💻", "🧩", "🗄️", "⚙️"];
+  const colours = ["violet", "blue", "green", "orange"];
+  element.innerHTML = topics.map((topic, index) => `
     <article class="subject">
-      <div class="subject-icon ${subject.color}">${subject.icon}</div>
-      <h3>${subject.name}</h3>
-      <p>${subject.desc}</p>
-      <button onclick="openSubject('${subject.name}')">Explore subject →</button>
+      <div class="subject-icon ${colours[index % colours.length]}">${icons[index % icons.length]}</div>
+      <h3>${escapeHtml(topic.name)}</h3>
+      <p>${escapeHtml(topic.description || "Practice questions for this topic.")}</p>
+      <button type="button" onclick="openSubject(${Number(topic.id)})">Open quiz →</button>
     </article>
   `).join("");
+}
+
+function showQuizMessage(message, isError = false) {
+  const element = document.getElementById("quiz-message");
+  element.textContent = message;
+  element.classList.remove("hidden");
+  element.style.background = isError ? "#ffe8e8" : "#f0edff";
+  element.style.color = isError ? "#9b2020" : "#49379a";
+}
+
+async function loadTopics(showLibrary = false) {
+  document.getElementById("quiz-area").classList.add("hidden");
+  document.getElementById("quiz-message").classList.add("hidden");
+  if (showLibrary) showPage("quizzes");
+
+  try {
+    const response = await fetch("/api/student/quizzes/topics", {
+      method: "GET",
+      credentials: "same-origin",
+      cache: "no-store"
+    });
+    if (response.status === 401 || response.status === 403) {
+      throw new Error("Your session may have expired. Please sign in again.");
+    }
+    if (!response.ok) throw new Error(`Could not load topics (HTTP ${response.status}).`);
+
+    cachedTopics = await response.json();
+    renderTopics("home-subjects", cachedTopics);
+    renderTopics("all-subjects", cachedTopics);
+    document.querySelector("#home .stat-value").textContent = String(cachedTopics.length).padStart(2, "0");
+    if (!cachedTopics.length) showQuizMessage("No topics have been added yet. Ask the administrator to add a topic first.");
+  } catch (error) {
+    showQuizMessage(error.message || "Could not load topics. Please try again.", true);
+  }
 }
 
 function showAuth(message = "") {
@@ -448,6 +494,7 @@ function enterDashboard() {
   document.getElementById("account-email").textContent = currentUser.email || "Signed in";
 
   showPage("home");
+  loadTopics();
 }
 
 function showPage(pageId) {
@@ -475,9 +522,46 @@ function handleHeaderAction() {
   }
 }
 
-function openSubject(name) {
+async function openSubject(topicId) {
+  const selectedTopic = cachedTopics.find(topic => Number(topic.id) === Number(topicId));
+  const topicName = selectedTopic ? selectedTopic.name : "Quiz";
   showPage("quizzes");
-  alert(name + " quizzes will be available when the quiz database and quiz-taking page are connected.");
+  document.getElementById("quiz-message").classList.add("hidden");
+  const area = document.getElementById("quiz-area");
+  const list = document.getElementById("question-list");
+  document.getElementById("selected-topic-title").textContent = topicName;
+  area.classList.remove("hidden");
+  list.innerHTML = '<p class="muted">Loading questions...</p>';
+
+  try {
+    const response = await fetch(`/api/student/quizzes/questions?topicId=${encodeURIComponent(topicId)}`, {
+      method: "GET",
+      credentials: "same-origin",
+      cache: "no-store"
+    });
+    if (response.status === 401 || response.status === 403) {
+      throw new Error("Your session may have expired. Please sign in again.");
+    }
+    if (!response.ok) throw new Error(`Could not load questions (HTTP ${response.status}).`);
+
+    const questions = await response.json();
+    if (!questions.length) {
+      list.innerHTML = '<p class="muted">There are no questions in this topic yet. Ask the administrator to add questions.</p>';
+      return;
+    }
+
+    list.innerHTML = questions.map((question, index) => `
+      <article class="panel" style="margin:16px 0;">
+        <h3>${index + 1}. ${escapeHtml(question.questionText)}</h3>
+        <label style="display:block;margin-top:12px;"><input type="radio" name="answer-${Number(question.id)}" value="A"> A. ${escapeHtml(question.optionA)}</label>
+        <label style="display:block;margin-top:10px;"><input type="radio" name="answer-${Number(question.id)}" value="B"> B. ${escapeHtml(question.optionB)}</label>
+        <label style="display:block;margin-top:10px;"><input type="radio" name="answer-${Number(question.id)}" value="C"> C. ${escapeHtml(question.optionC)}</label>
+        <label style="display:block;margin-top:10px;"><input type="radio" name="answer-${Number(question.id)}" value="D"> D. ${escapeHtml(question.optionD)}</label>
+      </article>
+    `).join("");
+  } catch (error) {
+    list.innerHTML = `<p class="muted">${escapeHtml(error.message || "Could not load questions.")}</p>`;
+  }
 }
 
 async function logout() {
@@ -497,9 +581,6 @@ async function logout() {
 }
 
 async function initialiseApp() {
-  renderSubjects("home-subjects");
-  renderSubjects("all-subjects");
-
   const session = await checkSession();
 
   if (session) {
