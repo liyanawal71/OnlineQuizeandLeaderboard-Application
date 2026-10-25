@@ -11,36 +11,62 @@ import org.springframework.web.server.ResponseStatusException;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/student/quizzes")
+@RequestMapping("/api/student")
 public class StudentQuizController {
 
-    private final QuizQuestionRepository questionRepository;
+    private final QuizCategoryRepository categoryRepository;
     private final QuizTopicRepository topicRepository;
+    private final QuizQuestionRepository questionRepository;
 
     public StudentQuizController(
-            QuizQuestionRepository questionRepository,
-            QuizTopicRepository topicRepository) {
+            QuizCategoryRepository categoryRepository,
+            QuizTopicRepository topicRepository,
+            QuizQuestionRepository questionRepository) {
 
-        this.questionRepository = questionRepository;
+        this.categoryRepository = categoryRepository;
         this.topicRepository = topicRepository;
+        this.questionRepository = questionRepository;
     }
 
-    // Get all topics created by the admin
-    @GetMapping("/topics")
-    public List<StudentTopicResponse> getTopics() {
+    // STEP 1: Get all categories
+    // URL: /api/student/categories
+    @GetMapping("/categories")
+    public List<CategoryResponse> getCategories() {
 
-        return topicRepository.findAll()
+        return categoryRepository.findAll()
                 .stream()
-                .map(topic -> new StudentTopicResponse(
+                .map(category -> new CategoryResponse(
+                        category.getId(),
+                        category.getName(),
+                        category.getDescription()))
+                .toList();
+    }
+
+    // STEP 2: Get topics inside a selected category
+    // URL: /api/student/topics?categoryId=1
+    @GetMapping("/topics")
+    public List<TopicResponse> getTopics(
+            @RequestParam Long categoryId) {
+
+        if (!categoryRepository.existsById(categoryId)) {
+            throw new ResponseStatusException(
+                    HttpStatus.NOT_FOUND,
+                    "Category not found.");
+        }
+
+        return topicRepository.findByCategoryId(categoryId)
+                .stream()
+                .map(topic -> new TopicResponse(
                         topic.getId(),
                         topic.getName(),
                         topic.getDescription()))
                 .toList();
     }
 
-    // Get questions belonging to a selected topic
+    // STEP 3: Get questions inside a selected topic
+    // URL: /api/student/questions?topicId=1
     @GetMapping("/questions")
-    public List<StudentQuestionResponse> getQuestions(
+    public List<QuestionResponse> getQuestions(
             @RequestParam Long topicId) {
 
         if (!topicRepository.existsById(topicId)) {
@@ -51,7 +77,7 @@ public class StudentQuizController {
 
         return questionRepository.findByTopicId(topicId)
                 .stream()
-                .map(question -> new StudentQuestionResponse(
+                .map(question -> new QuestionResponse(
                         question.getId(),
                         question.getQuestionText(),
                         question.getOptionA(),
@@ -61,16 +87,21 @@ public class StudentQuizController {
                 .toList();
     }
 
-    // Topic information returned to students
-    public record StudentTopicResponse(
+    // Response data sent to the student website
+
+    public record CategoryResponse(
             Long id,
             String name,
             String description) {
     }
 
-    // Question information returned to students.
-    // The correct answer is deliberately excluded.
-    public record StudentQuestionResponse(
+    public record TopicResponse(
+            Long id,
+            String name,
+            String description) {
+    }
+
+    public record QuestionResponse(
             Long id,
             String questionText,
             String optionA,
@@ -79,4 +110,3 @@ public class StudentQuizController {
             String optionD) {
     }
 }
-
