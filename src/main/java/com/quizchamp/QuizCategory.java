@@ -50,3 +50,4 @@ public class QuizCategory {
         this.description = description;
     }
 }
+
