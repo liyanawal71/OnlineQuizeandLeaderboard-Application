@@ -1,4 +1,3 @@
-
 package com.quizchamp;
 
 import org.springframework.http.HttpStatus;
@@ -14,45 +13,19 @@ import java.util.List;
 @RequestMapping("/api/student")
 public class StudentQuizController {
 
-    private final QuizCategoryRepository categoryRepository;
     private final QuizTopicRepository topicRepository;
     private final QuizQuestionRepository questionRepository;
 
     public StudentQuizController(
-            QuizCategoryRepository categoryRepository,
             QuizTopicRepository topicRepository,
             QuizQuestionRepository questionRepository) {
-
-        this.categoryRepository = categoryRepository;
         this.topicRepository = topicRepository;
         this.questionRepository = questionRepository;
     }
 
-    // STEP 1: Get all categories
-    // URL: /api/student/categories
-    @GetMapping("/categories")
-    public List<CategoryResponse> getCategories() {
-
-        return categoryRepository.findAll()
-                .stream()
-                .map(category -> new CategoryResponse(
-                        category.getId(),
-                        category.getName(),
-                        category.getDescription()))
-                .toList();
-    }
-
-    // STEP 2: Get topics inside a selected category
-    // URL: /api/student/topics?categoryId=1
     @GetMapping("/topics")
     public List<TopicResponse> getTopics(
             @RequestParam Long categoryId) {
-
-        if (!categoryRepository.existsById(categoryId)) {
-            throw new ResponseStatusException(
-                    HttpStatus.NOT_FOUND,
-                    "Category not found.");
-        }
 
         return topicRepository.findByCategoryId(categoryId)
                 .stream()
@@ -63,8 +36,6 @@ public class StudentQuizController {
                 .toList();
     }
 
-    // STEP 3: Get questions inside a selected topic
-    // URL: /api/student/questions?topicId=1
     @GetMapping("/questions")
     public List<QuestionResponse> getQuestions(
             @RequestParam Long topicId) {
@@ -85,14 +56,6 @@ public class StudentQuizController {
                         question.getOptionC(),
                         question.getOptionD()))
                 .toList();
-    }
-
-    // Response data sent to the student website
-
-    public record CategoryResponse(
-            Long id,
-            String name,
-            String description) {
     }
 
     public record TopicResponse(

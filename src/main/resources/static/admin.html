@@ -368,7 +368,7 @@ async function loadCategories(showLibrary = false) {
   backButton.onclick = () => loadCategories(true);
 
   try {
-    const response = await fetch("/api/student/quizzes/categories", {
+    const response = await fetch("/api/student/categories", {
       method: "GET",
       credentials: "same-origin",
       cache: "no-store"

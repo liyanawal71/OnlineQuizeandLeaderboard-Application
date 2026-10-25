@@ -1,0 +1,20 @@
+# Query: /api/student/quizzes/
+# ContextLines: 1
+
+4 results - 2 files
+
+src\main\resources\static\admin.html:
+  408    try {
+  409:       const response = await fetch(`/api/student/topics?categoryId=${encodeURIComponent(categoryId)}`, {
+
+  606    try {
+              const response = await fetch(`/api/student/questions?topicId=${encodeURIComponent(topicId)}`, {
+  607:     
+src\main\resources\static\index.html:
+  408    try {
+  409:     const response = await fetch(`/api/student/quizzes/topics?categoryId=${encodeURIComponent(categoryId)}`, {
+  410        method: "GET",
+
+  606    try {
+  607:     const response = await fetch(`/api/student/quizzes/questions?topicId=${encodeURIComponent(topicId)}`, {
+  608        method: "GET",
