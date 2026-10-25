@@ -298,7 +298,9 @@ a { color: var(--purple); }
 <script>
 let authMode = "signin";
 let currentUser = null;
+let cachedCategories = [];
 let cachedTopics = [];
+let currentCategoryId = null;
 
 function escapeHtml(value) {
   return String(value ?? "").replace(/[&<>"']/g, character => ({
@@ -306,10 +308,29 @@ function escapeHtml(value) {
   })[character]);
 }
 
+function renderCategories(elementId, categories) {
+  const element = document.getElementById(elementId);
+  if (!categories.length) {
+    element.innerHTML = '<div class="panel"><p class="muted">No categories are available yet. Please ask the administrator to add a category first.</p></div>';
+    return;
+  }
+
+  const icons = ["📚", "💻", "🧠", "⚙️"];
+  const colours = ["violet", "blue", "green", "orange"];
+  element.innerHTML = categories.map((category, index) => `
+    <article class="subject">
+      <div class="subject-icon ${colours[index % colours.length]}">${icons[index % icons.length]}</div>
+      <h3>${escapeHtml(category.name)}</h3>
+      <p>${escapeHtml(category.description || "Explore topics in this category.")}</p>
+      <button type="button" onclick="openCategory(${Number(category.id)})">View topics →</button>
+    </article>
+  `).join("");
+}
+
 function renderTopics(elementId, topics) {
   const element = document.getElementById(elementId);
   if (!topics.length) {
-    element.innerHTML = '<div class="panel"><p class="muted">No topics are available yet. Please check back after the administrator adds topics.</p></div>';
+    element.innerHTML = '<div class="panel"><p class="muted">No topics are available in this category yet. Please ask the administrator to add topics.</p></div>';
     return;
   }
 
@@ -333,13 +354,59 @@ function showQuizMessage(message, isError = false) {
   element.style.color = isError ? "#9b2020" : "#49379a";
 }
 
-async function loadTopics(showLibrary = false) {
+async function loadCategories(showLibrary = false) {
   document.getElementById("quiz-area").classList.add("hidden");
   document.getElementById("quiz-message").classList.add("hidden");
   if (showLibrary) showPage("quizzes");
 
+  const heading = document.querySelector("#quizzes .section-head h2");
+  const subtitle = document.querySelector("#quizzes .section-head p");
+  const backButton = document.querySelector("#quiz-area > button");
+  heading.textContent = "Quiz library — Categories";
+  subtitle.textContent = "Choose a category to explore its topics.";
+  backButton.textContent = "← Back to categories";
+  backButton.onclick = () => loadCategories(true);
+
   try {
-    const response = await fetch("/api/student/quizzes/topics", {
+    const response = await fetch("/api/student/quizzes/categories", {
+      method: "GET",
+      credentials: "same-origin",
+      cache: "no-store"
+    });
+    if (response.status === 401 || response.status === 403) {
+      throw new Error("Your session may have expired. Please sign in again.");
+    }
+    if (!response.ok) throw new Error(`Could not load categories (HTTP ${response.status}).`);
+
+    cachedCategories = await response.json();
+    renderCategories("home-subjects", cachedCategories);
+    renderCategories("all-subjects", cachedCategories);
+    document.querySelector("#home .stat-value").textContent = String(cachedCategories.length).padStart(2, "0");
+    if (!cachedCategories.length) {
+      showQuizMessage("No categories have been added yet. Ask the administrator to add a category first.");
+    }
+  } catch (error) {
+    showQuizMessage(error.message || "Could not load categories. Please try again.", true);
+  }
+}
+
+async function loadTopics(categoryId) {
+  currentCategoryId = Number(categoryId);
+  const category = cachedCategories.find(item => Number(item.id) === currentCategoryId);
+  document.getElementById("quiz-area").classList.add("hidden");
+  document.getElementById("quiz-message").classList.add("hidden");
+  showPage("quizzes");
+
+  const heading = document.querySelector("#quizzes .section-head h2");
+  const subtitle = document.querySelector("#quizzes .section-head p");
+  const backButton = document.querySelector("#quiz-area > button");
+  heading.textContent = category ? category.name : "Category topics";
+  subtitle.textContent = "Choose a topic to open its questions.";
+  backButton.textContent = "← Back to categories";
+  backButton.onclick = () => loadCategories(true);
+
+  try {
+    const response = await fetch(`/api/student/quizzes/topics?categoryId=${encodeURIComponent(categoryId)}`, {
       method: "GET",
       credentials: "same-origin",
       cache: "no-store"
@@ -352,11 +419,14 @@ async function loadTopics(showLibrary = false) {
     cachedTopics = await response.json();
     renderTopics("home-subjects", cachedTopics);
     renderTopics("all-subjects", cachedTopics);
-    document.querySelector("#home .stat-value").textContent = String(cachedTopics.length).padStart(2, "0");
-    if (!cachedTopics.length) showQuizMessage("No topics have been added yet. Ask the administrator to add a topic first.");
+    document.getElementById("quiz-message").classList.add("hidden");
   } catch (error) {
     showQuizMessage(error.message || "Could not load topics. Please try again.", true);
   }
+}
+
+function openCategory(categoryId) {
+  loadTopics(categoryId);
 }
 
 function showAuth(message = "") {
@@ -494,7 +564,7 @@ function enterDashboard() {
   document.getElementById("account-email").textContent = currentUser.email || "Signed in";
 
   showPage("home");
-  loadTopics();
+  loadCategories();
 }
 
 function showPage(pageId) {
