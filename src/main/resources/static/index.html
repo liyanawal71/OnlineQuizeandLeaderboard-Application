@@ -1,0 +1,516 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>QuizChamp | Learn. Play. Achieve.</title>
+
+<style>
+:root {
+  --bg: #f6f5fc;
+  --navy: #191632;
+  --purple: #7654e8;
+  --muted: #77758e;
+  --border: #eae6f5;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: "Segoe UI", Arial, sans-serif;
+  background: var(--bg);
+  color: var(--navy);
+  padding-bottom: 95px;
+}
+header {
+  background: var(--navy);
+  color: white;
+  padding: 16px 5%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+.brand { display: flex; align-items: center; gap: 11px; }
+.logo {
+  width: 43px; height: 43px;
+  display: grid; place-items: center;
+  background: var(--purple);
+  border-radius: 13px; font-size: 23px;
+}
+.brand h1 { font-size: 23px; }
+.brand p { font-size: 11px; color: #c8c2e9; margin-top: 3px; }
+button { font: inherit; cursor: pointer; }
+.header-btn {
+  background: #ffffff18; color: white;
+  border: 1px solid #ffffff30;
+  padding: 10px 15px; border-radius: 10px;
+}
+main { max-width: 1080px; width: 92%; margin: 25px auto; }
+.page { display: none; }
+.page.active { display: block; }
+.hero {
+  background: linear-gradient(125deg, #211b49, #6144c9);
+  border-radius: 23px; padding: 34px; color: white;
+  display: flex; justify-content: space-between;
+  align-items: center; gap: 20px; overflow: hidden;
+}
+.eyebrow {
+  font-size: 12px; color: #d6ccff;
+  letter-spacing: 2px; font-weight: 700;
+}
+.hero h2 { font-size: clamp(28px, 4vw, 43px); margin: 15px 0 10px; }
+.hero p { color: #e1dcfa; line-height: 1.7; max-width: 470px; }
+.hero-art { font-size: 85px; }
+.primary {
+  background: var(--purple); color: white; border: none;
+  border-radius: 10px; padding: 12px 18px; font-weight: 650;
+}
+.hero .primary { background: white; color: #5337b7; margin-top: 21px; }
+.section-head {
+  display: flex; justify-content: space-between;
+  align-items: center; gap: 12px; margin: 29px 0 17px;
+}
+.section-head h2 { font-size: 22px; }
+.section-head p { color: var(--muted); font-size: 13px; margin-top: 5px; }
+.text-btn { border: none; color: var(--purple); background: transparent; font-weight: 650; }
+.stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-top: 20px; }
+.stat, .subject, .panel {
+  background: white; border: 1px solid #eeebf7;
+  border-radius: 17px; padding: 21px;
+}
+.stat-label, .stat-note { color: var(--muted); font-size: 13px; }
+.stat-value { font-size: 27px; font-weight: 750; margin-top: 12px; }
+.stat-note { font-size: 12px; margin-top: 7px; }
+.subject-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; }
+.subject-icon {
+  width: 48px; height: 48px; display: grid; place-items: center;
+  border-radius: 13px; font-size: 24px; margin-bottom: 17px;
+}
+.violet { background: #eee8ff; }
+.blue { background: #e4efff; }
+.green { background: #def7e9; }
+.orange { background: #fff0df; }
+.subject h3 { font-size: 17px; }
+.subject p { color: var(--muted); font-size: 13px; line-height: 1.6; margin: 9px 0 17px; }
+.subject button {
+  background: #f0edff; color: #6045ca; border: none;
+  padding: 10px 12px; border-radius: 9px; font-weight: 650;
+}
+.panel { margin-top: 20px; }
+.panel h3 { margin-bottom: 12px; }
+.muted { color: var(--muted); font-size: 13px; line-height: 1.7; }
+.form-card {
+  background: white; border: 1px solid var(--border);
+  border-radius: 18px; padding: 25px;
+  max-width: 480px; margin: 25px auto;
+}
+.form-card h2 { margin-bottom: 8px; }
+.field { margin-top: 17px; }
+.field label { display: block; font-size: 13px; margin-bottom: 7px; }
+.field input {
+  width: 100%; padding: 13px; border: 1px solid #ddd8ed;
+  border-radius: 9px; font: inherit;
+}
+.full { width: 100%; margin-top: 20px; }
+.notice {
+  background: #f0edff; color: #49379a;
+  padding: 12px; border-radius: 9px;
+  margin-top: 15px; font-size: 13px; line-height: 1.6;
+}
+.bottom-nav {
+  position: fixed; z-index: 5; bottom: 0; left: 0; right: 0;
+  display: flex; justify-content: center; background: white;
+  border-top: 1px solid var(--border);
+  padding: 9px 10px max(9px, env(safe-area-inset-bottom));
+}
+.nav-inner {
+  display: flex; justify-content: space-around;
+  width: 100%; max-width: 650px;
+}
+.nav-btn {
+  display: flex; flex-direction: column; align-items: center;
+  gap: 5px; min-width: 65px; padding: 8px 12px;
+  border: none; background: transparent; color: #858199;
+  border-radius: 11px; font-size: 11px;
+}
+.nav-icon { font-size: 21px; }
+.nav-btn.active { background: #f0edff; color: #6545d3; font-weight: 700; }
+.hidden { display: none !important; }
+a { color: var(--purple); }
+@media (max-width: 650px) {
+  main { width: 93%; margin-top: 17px; }
+  .hero { padding: 25px 20px; }
+  .hero-art { font-size: 53px; }
+  .stats { grid-template-columns: 1fr 1fr; gap: 10px; }
+  .stat { padding: 16px; }
+  .subject-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
+  .subject { padding: 15px; }
+  .subject h3 { font-size: 15px; }
+  .subject p { font-size: 12px; }
+}
+@media (max-width: 390px) {
+  .brand h1 { font-size: 19px; }
+  .brand p { font-size: 9px; }
+  .hero-art { display: none; }
+  .subject-grid { grid-template-columns: 1fr; }
+  .nav-btn { min-width: 0; padding: 8px 10px; }
+}
+</style>
+</head>
+
+<body>
+<header>
+  <div class="brand">
+    <div class="logo">🏆</div>
+    <div>
+      <h1>QuizChamp</h1>
+      <p>LEARN. PLAY. ACHIEVE.</p>
+    </div>
+  </div>
+  <button id="header-action" class="header-btn" onclick="handleHeaderAction()">Sign in</button>
+</header>
+
+<main>
+  <section id="auth-page" class="page active">
+    <div class="form-card">
+      <h2 id="auth-title">Welcome to QuizChamp</h2>
+      <p id="auth-description" class="muted">Sign in to continue your learning journey.</p>
+
+      <form id="auth-form" onsubmit="submitAuth(event)">
+        <div id="name-field" class="field hidden">
+          <label for="fullName">Full name</label>
+          <input id="fullName" type="text" autocomplete="name" placeholder="Enter your full name">
+        </div>
+
+        <div class="field">
+          <label for="email">Email address</label>
+          <input id="email" type="email" autocomplete="email" placeholder="you@example.com" required>
+        </div>
+
+        <div class="field">
+          <label for="password">Password</label>
+          <input id="password" type="password" autocomplete="current-password" placeholder="Enter password" required>
+        </div>
+
+        <button id="submit-button" class="primary full" type="submit">Sign in</button>
+      </form>
+
+      <p id="auth-switch" class="muted" style="margin-top:18px;text-align:center">
+        New student? <a href="#" onclick="setAuthMode('register');return false;">Create an account</a>
+      </p>
+
+      <div id="form-notice" class="notice hidden" role="status"></div>
+      <p class="muted" style="margin-top:15px;text-align:center">
+        Administrator? <a href="/admin.html">Open admin login</a>
+      </p>
+    </div>
+  </section>
+
+  <section id="home" class="page">
+    <div class="hero">
+      <div>
+        <div class="eyebrow">YOUR LEARNING JOURNEY</div>
+        <h2>Ready to level up?</h2>
+        <p>Challenge your knowledge, practise new skills and climb the leaderboard.</p>
+        <button class="primary" onclick="showPage('quizzes')">Explore quizzes →</button>
+      </div>
+      <div class="hero-art">🎓</div>
+    </div>
+
+    <div class="stats">
+      <div class="stat">
+        <div class="stat-label">Available subjects</div>
+        <div class="stat-value">04</div>
+        <div class="stat-note">Explore your topics</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">Your progress</div>
+        <div id="progress-value" class="stat-value">0%</div>
+        <div class="stat-note">Completed attempts</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">Your best score</div>
+        <div id="best-score" class="stat-value">—</div>
+        <div class="stat-note">After your first quiz</div>
+      </div>
+    </div>
+
+    <div class="section-head">
+      <div><h2>Explore subjects</h2><p>Choose a subject to start practising.</p></div>
+      <button class="text-btn" onclick="showPage('quizzes')">View all →</button>
+    </div>
+    <div id="home-subjects" class="subject-grid"></div>
+
+    <div class="panel">
+      <div class="section-head" style="margin-top:0">
+        <div><h2>🏆 Leaderboard</h2><p>See how students perform.</p></div>
+        <button class="text-btn" onclick="showPage('leaderboard')">View →</button>
+      </div>
+      <p class="muted">Leaderboard results will appear here after quiz attempts are connected to the database.</p>
+    </div>
+  </section>
+
+  <section id="quizzes" class="page">
+    <div class="section-head">
+      <div><h2>Quiz library</h2><p>Choose a subject and test your knowledge.</p></div>
+    </div>
+    <div id="all-subjects" class="subject-grid"></div>
+    <div class="notice">These are starter subject cards. Database-driven quizzes still need to be connected to the backend.</div>
+  </section>
+
+  <section id="leaderboard" class="page">
+    <div class="section-head">
+      <div><h2>🏆 Leaderboard</h2><p>Continuous assessment rankings.</p></div>
+    </div>
+    <div class="panel">
+      <h3>Student rankings</h3>
+      <p class="muted">No saved quiz results are connected yet. The leaderboard requires a backend endpoint and database records.</p>
+    </div>
+  </section>
+
+  <section id="account" class="page">
+    <div class="section-head">
+      <div><h2>Your account</h2><p id="account-email">Your signed-in account.</p></div>
+    </div>
+    <div class="panel">
+      <h3>Student account</h3>
+      <p class="muted">Your login is managed by the QuizChamp server.</p>
+      <button class="primary" style="margin-top:16px" onclick="logout()">Sign out</button>
+    </div>
+  </section>
+</main>
+
+<nav id="bottom-nav" class="bottom-nav hidden">
+  <div class="nav-inner">
+    <button class="nav-btn active" data-page="home" onclick="showPage('home')"><span class="nav-icon">⌂</span>Home</button>
+    <button class="nav-btn" data-page="quizzes" onclick="showPage('quizzes')"><span class="nav-icon">▤</span>Quizzes</button>
+    <button class="nav-btn" data-page="leaderboard" onclick="showPage('leaderboard')"><span class="nav-icon">🏆</span>Rankings</button>
+    <button class="nav-btn" data-page="account" onclick="showPage('account')"><span class="nav-icon">♙</span>Account</button>
+  </div>
+</nav>
+
+<script>
+const subjects = [
+  { name: "Java Programming", desc: "OOP, classes and methods", icon: "💻", color: "violet" },
+  { name: "Data Structures", desc: "Arrays, trees and sorting", icon: "🧩", color: "blue" },
+  { name: "Database Systems", desc: "SQL, tables and queries", icon: "🗄️", color: "green" },
+  { name: "Software Engineering", desc: "Design, testing and models", icon: "⚙️", color: "orange" }
+];
+
+let authMode = "signin";
+let currentUser = null;
+
+function renderSubjects(elementId) {
+  const element = document.getElementById(elementId);
+
+  element.innerHTML = subjects.map(subject => `
+    <article class="subject">
+      <div class="subject-icon ${subject.color}">${subject.icon}</div>
+      <h3>${subject.name}</h3>
+      <p>${subject.desc}</p>
+      <button onclick="openSubject('${subject.name}')">Explore subject →</button>
+    </article>
+  `).join("");
+}
+
+function showAuth(message = "") {
+  document.querySelectorAll(".page").forEach(page => page.classList.remove("active"));
+  document.getElementById("auth-page").classList.add("active");
+  document.getElementById("bottom-nav").classList.add("hidden");
+  document.getElementById("header-action").textContent = "Sign in";
+  setAuthMode("signin");
+
+  if (message) showNotice(message, true);
+}
+
+function showNotice(message, isError = false) {
+  const notice = document.getElementById("form-notice");
+  notice.textContent = message;
+  notice.classList.remove("hidden");
+  notice.style.background = isError ? "#ffe8e8" : "#f0edff";
+  notice.style.color = isError ? "#9b2020" : "#49379a";
+}
+
+function setAuthMode(mode) {
+  authMode = mode;
+  const registering = mode === "register";
+
+  document.getElementById("auth-title").textContent =
+    registering ? "Create your student account" : "Welcome to QuizChamp";
+
+  document.getElementById("auth-description").textContent =
+    registering ? "Join QuizChamp and start learning." : "Sign in to continue your learning journey.";
+
+  document.getElementById("name-field").classList.toggle("hidden", !registering);
+  document.getElementById("fullName").required = registering;
+  document.getElementById("password").autocomplete =
+    registering ? "new-password" : "current-password";
+
+  document.getElementById("submit-button").textContent =
+    registering ? "Create account" : "Sign in";
+
+  document.getElementById("auth-switch").innerHTML = registering
+    ? 'Already registered? <a href="#" onclick="setAuthMode(\'signin\');return false;">Sign in</a>'
+    : 'New student? <a href="#" onclick="setAuthMode(\'register\');return false;">Create an account</a>';
+
+  document.getElementById("form-notice").classList.add("hidden");
+}
+
+async function submitAuth(event) {
+  event.preventDefault();
+
+  const email = document.getElementById("email").value.trim();
+  const password = document.getElementById("password").value;
+  const button = document.getElementById("submit-button");
+
+  const payload = { email, password };
+
+  if (authMode === "register") {
+    payload.fullName = document.getElementById("fullName").value.trim();
+  }
+
+  button.disabled = true;
+  button.textContent = "Please wait...";
+
+  try {
+    const endpoint = authMode === "register"
+      ? "/api/auth/register"
+      : "/api/auth/login";
+
+    const response = await fetch(endpoint, {
+      method: "POST",
+      credentials: "same-origin",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    });
+
+    const data = await response.json().catch(() => ({}));
+
+    if (!response.ok) {
+      throw new Error(data.error || data.message || `Request failed (${response.status}).`);
+    }
+
+    if (authMode === "register") {
+      setAuthMode("signin");
+      document.getElementById("email").value = email;
+      showNotice("Account created successfully. Please sign in.", false);
+      return;
+    }
+
+    if (data.role && !data.role.includes("ROLE_STUDENT")) {
+      await logout();
+      throw new Error("This page is for student accounts. Use the separate admin login.");
+    }
+
+    const session = await checkSession();
+
+    if (!session || !session.loggedIn) {
+      throw new Error("Login response succeeded, but the session could not be verified. Please try again.");
+    }
+
+    currentUser = session;
+    enterDashboard();
+
+  } catch (error) {
+    showNotice(error.message || "Unable to sign in. Please try again.", true);
+  } finally {
+    button.disabled = false;
+    button.textContent = authMode === "register" ? "Create account" : "Sign in";
+  }
+}
+
+async function checkSession() {
+  try {
+    const response = await fetch("/api/auth/session-check", {
+      method: "GET",
+      credentials: "same-origin",
+      cache: "no-store"
+    });
+
+    if (!response.ok) return null;
+
+    const data = await response.json();
+    return data.loggedIn === true ? data : null;
+  } catch (error) {
+    return null;
+  }
+}
+
+function enterDashboard() {
+  if (!currentUser) {
+    showAuth();
+    return;
+  }
+
+  document.getElementById("auth-page").classList.remove("active");
+  document.getElementById("bottom-nav").classList.remove("hidden");
+  document.getElementById("header-action").textContent = "Sign out";
+  document.getElementById("account-email").textContent = currentUser.email || "Signed in";
+
+  showPage("home");
+}
+
+function showPage(pageId) {
+  if (!currentUser) {
+    showAuth("Please sign in to access QuizChamp.");
+    return;
+  }
+
+  document.querySelectorAll(".page").forEach(page => {
+    page.classList.toggle("active", page.id === pageId);
+  });
+
+  document.querySelectorAll(".nav-btn").forEach(button => {
+    button.classList.toggle("active", button.dataset.page === pageId);
+  });
+
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+function handleHeaderAction() {
+  if (currentUser) {
+    logout();
+  } else {
+    showAuth();
+  }
+}
+
+function openSubject(name) {
+  showPage("quizzes");
+  alert(name + " quizzes will be available when the quiz database and quiz-taking page are connected.");
+}
+
+async function logout() {
+  try {
+    await fetch("/logout", {
+      method: "POST",
+      credentials: "same-origin"
+    });
+  } catch (error) {
+    console.warn("Logout request could not be completed.", error);
+  }
+
+  currentUser = null;
+  sessionStorage.removeItem("quizchampSignedIn");
+  sessionStorage.removeItem("quizchampEmail");
+  showAuth("You have been signed out.");
+}
+
+async function initialiseApp() {
+  renderSubjects("home-subjects");
+  renderSubjects("all-subjects");
+
+  const session = await checkSession();
+
+  if (session) {
+    currentUser = session;
+    enterDashboard();
+  } else {
+    showAuth();
+  }
+}
+
+initialiseApp();
+</script>
+</body>
+</html>

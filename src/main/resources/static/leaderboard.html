@@ -1,0 +1,331 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QuizChamp | Leaderboard</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            padding: 30px 16px;
+            font-family: Arial, sans-serif;
+            background: #f3f6ff;
+            color: #1f2937;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            color: #4f46e5;
+            font-size: 36px;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: #64748b;
+        }
+
+        .card {
+            background: white;
+            padding: 24px;
+            border-radius: 16px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.06);
+            overflow-x: auto;
+        }
+
+        .top-three {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-bottom: 25px;
+        }
+
+        .top-card {
+            text-align: center;
+            background: #eef2ff;
+            border-radius: 12px;
+            padding: 18px 8px;
+        }
+
+        .top-card .medal {
+            font-size: 30px;
+        }
+
+        .top-card h3 {
+            font-size: 15px;
+            overflow-wrap: anywhere;
+        }
+
+        .top-card p {
+            color: #4f46e5;
+            font-weight: bold;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 650px;
+        }
+
+        th, td {
+            padding: 15px 12px;
+            text-align: left;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        th {
+            background: #4f46e5;
+            color: white;
+        }
+
+        tbody tr:hover {
+            background: #f8fafc;
+        }
+
+        .rank {
+            font-weight: bold;
+            color: #4f46e5;
+        }
+
+        .percentage {
+            color: #15803d;
+            font-weight: bold;
+        }
+
+        .message {
+            text-align: center;
+            padding: 25px;
+            color: #64748b;
+        }
+
+        .actions {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            margin-top: 24px;
+            flex-wrap: wrap;
+        }
+
+        .button {
+            padding: 12px 20px;
+            background: #4f46e5;
+            color: white;
+            text-decoration: none;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 15px;
+        }
+
+        .button:hover {
+            background: #4338ca;
+        }
+
+        @media (max-width: 600px) {
+            .header h1 {
+                font-size: 28px;
+            }
+
+            .top-three {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+
+        <header class="header">
+            <h1>🏆 QuizChamp Leaderboard</h1>
+            <p>Celebrate learning. Track your progress. Aim for the top!</p>
+        </header>
+
+        <section class="top-three" id="topThree">
+            <div class="top-card">
+                <div class="medal">🥇</div>
+                <h3>Loading...</h3>
+                <p>---</p>
+            </div>
+            <div class="top-card">
+                <div class="medal">🥈</div>
+                <h3>Loading...</h3>
+                <p>---</p>
+            </div>
+            <div class="top-card">
+                <div class="medal">🥉</div>
+                <h3>Loading...</h3>
+                <p>---</p>
+            </div>
+        </section>
+
+        <section class="card">
+            <h2>All Quiz Results</h2>
+
+            <p id="status" class="message" role="status">
+                Loading leaderboard...
+            </p>
+
+            <table id="leaderboardTable" hidden>
+                <thead>
+                    <tr>
+                        <th>Rank</th>
+                        <th>Student</th>
+                        <th>Topic</th>
+                        <th>Score</th>
+                        <th>Percentage</th>
+                        <th>Completed At</th>
+                    </tr>
+                </thead>
+                <tbody id="leaderboardBody"></tbody>
+            </table>
+        </section>
+
+        <div class="actions">
+            <button class="button" onclick="loadLeaderboard()">
+                Refresh Leaderboard
+            </button>
+
+            <a class="button" href="index.html">Home</a>
+            <a class="button" href="student.html">Take a Quiz</a>
+        </div>
+
+    </div>
+
+    <script>
+        async function loadLeaderboard() {
+            const status = document.getElementById("status");
+            const table = document.getElementById("leaderboardTable");
+            const body = document.getElementById("leaderboardBody");
+            const topThree = document.getElementById("topThree");
+
+            status.textContent = "Loading leaderboard...";
+            status.hidden = false;
+            table.hidden = true;
+            body.replaceChildren();
+
+            try {
+                const response = await fetch("/api/leaderboard");
+
+                if (!response.ok) {
+                    throw new Error("Request failed with status " + response.status);
+                }
+
+                const results = await response.json();
+
+                if (!Array.isArray(results) || results.length === 0) {
+                    status.textContent =
+                        "No quiz results yet. Complete a quiz to appear here.";
+
+                    topThree.replaceChildren();
+                    return;
+                }
+
+                // Sort by percentage, then score, then completion time.
+                results.sort((a, b) =>
+                    Number(b.percentage) - Number(a.percentage) ||
+                    Number(b.score) - Number(a.score) ||
+                    new Date(a.completedAt) - new Date(b.completedAt)
+                );
+
+                // Show the top three students.
+                topThree.replaceChildren();
+
+                const medals = ["🥇", "🥈", "🥉"];
+
+                for (let i = 0; i < Math.min(3, results.length); i++) {
+                    const result = results[i];
+                    const card = document.createElement("div");
+                    card.className = "top-card";
+
+                    const medal = document.createElement("div");
+                    medal.className = "medal";
+                    medal.textContent = medals[i];
+
+                    const name = document.createElement("h3");
+                    name.textContent = result.studentName || "Student";
+
+                    const score = document.createElement("p");
+                    score.textContent =
+                        Number(result.percentage).toFixed(1) + "%";
+
+                    card.append(medal, name, score);
+                    topThree.appendChild(card);
+                }
+
+                // Display all results.
+                results.forEach((result, index) => {
+                    const row = document.createElement("tr");
+
+                    const values = [
+                        index + 1,
+                        result.studentName || "Student",
+                        result.topicName || "-",
+                        result.score + " / " + result.totalQuestions,
+                        Number(result.percentage).toFixed(1) + "%",
+                        formatDate(result.completedAt)
+                    ];
+
+                    values.forEach((value, columnIndex) => {
+                        const cell = document.createElement("td");
+                        cell.textContent = value;
+
+                        if (columnIndex === 0) {
+                            cell.className = "rank";
+                        }
+
+                        if (columnIndex === 4) {
+                            cell.className = "percentage";
+                        }
+
+                        row.appendChild(cell);
+                    });
+
+                    body.appendChild(row);
+                });
+
+                status.hidden = true;
+                table.hidden = false;
+
+            } catch (error) {
+                console.error("Leaderboard error:", error);
+
+                topThree.replaceChildren();
+                status.textContent =
+                    "Unable to load the leaderboard. Check that QuizChamp is running and that the API is accessible.";
+            }
+        }
+
+        function formatDate(value) {
+            if (!value) {
+                return "-";
+            }
+
+            const date = new Date(value);
+
+            if (Number.isNaN(date.getTime())) {
+                return "-";
+            }
+
+            return date.toLocaleString();
+        }
+
+        loadLeaderboard();
+    </script>
+</body>
+</html>
+

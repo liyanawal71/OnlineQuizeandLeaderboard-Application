@@ -1,0 +1,768 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QuizChamp - Student Portal</title>
+
+    <style>
+        :root {
+            --purple: #6548dc;
+            --dark-purple: #5033bd;
+            --light-purple: #f0edff;
+            --background: #f7f6fc;
+            --text: #28243d;
+            --muted: #77738b;
+            --border: #e8e4f5;
+            --green: #188653;
+            --red: #bd3545;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: var(--background);
+            color: var(--text);
+        }
+
+        header {
+            background: var(--purple);
+            color: white;
+            padding: 22px 7%;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 15px;
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 26px;
+        }
+
+        header p {
+            margin: 6px 0 0;
+            font-size: 13px;
+        }
+
+        .badge {
+            padding: 10px 14px;
+            background: #ffffff25;
+            border-radius: 20px;
+            font-size: 13px;
+        }
+
+        main {
+            width: min(850px, 92%);
+            margin: 35px auto;
+        }
+
+        .panel {
+            background: white;
+            padding: 26px;
+            border: 1px solid var(--border);
+            border-radius: 15px;
+            box-shadow: 0 8px 28px #33215d0b;
+            margin-bottom: 22px;
+        }
+
+        h2 {
+            margin-top: 0;
+        }
+
+        .muted {
+            color: var(--muted);
+            line-height: 1.6;
+        }
+
+        label {
+            display: block;
+            font-weight: bold;
+            margin: 18px 0 8px;
+        }
+
+        select {
+            width: 100%;
+            padding: 13px;
+            border: 1px solid #ded9ee;
+            border-radius: 9px;
+            background: white;
+            color: var(--text);
+            font-size: 15px;
+        }
+
+        button {
+            padding: 12px 18px;
+            border: none;
+            border-radius: 9px;
+            background: var(--purple);
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: var(--dark-purple);
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .secondary {
+            background: var(--light-purple);
+            color: var(--dark-purple);
+        }
+
+        .secondary:hover {
+            background: #e0d8ff;
+        }
+
+        .actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 22px;
+        }
+
+        .message {
+            font-size: 14px;
+            line-height: 1.6;
+            overflow-wrap: anywhere;
+        }
+
+        .error {
+            color: var(--red);
+        }
+
+        .success {
+            color: var(--green);
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .question-card {
+            border: 1px solid var(--border);
+            padding: 20px;
+            margin: 16px 0;
+            border-radius: 12px;
+        }
+
+        .question-card h3 {
+            line-height: 1.5;
+            margin-top: 0;
+        }
+
+        .answer-option {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            padding: 13px;
+            margin-top: 9px;
+            border: 1px solid var(--border);
+            border-radius: 9px;
+            cursor: pointer;
+            font-weight: normal;
+            line-height: 1.5;
+        }
+
+        .answer-option input {
+            margin-top: 4px;
+            accent-color: var(--purple);
+        }
+
+        .answer-option:has(input:checked) {
+            border-color: var(--purple);
+            background: #f5f2ff;
+        }
+
+        .progress {
+            height: 7px;
+            background: #ece9f8;
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 15px 0;
+        }
+
+        #progressBar {
+            height: 100%;
+            width: 0;
+            background: var(--purple);
+            transition: width 0.2s;
+        }
+
+        .score {
+            font-size: 35px;
+            font-weight: bold;
+            color: var(--purple);
+        }
+
+        .result-box {
+            background: var(--light-purple);
+            padding: 16px;
+            border-radius: 10px;
+            line-height: 1.8;
+            overflow-wrap: anywhere;
+        }
+
+        footer {
+            text-align: center;
+            padding: 22px;
+            color: var(--muted);
+            font-size: 13px;
+        }
+
+        @media (max-width: 550px) {
+            header {
+                padding: 18px 5%;
+            }
+
+            header h1 {
+                font-size: 21px;
+            }
+
+            main {
+                margin-top: 20px;
+            }
+
+            .panel {
+                padding: 18px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<header>
+    <div>
+        <h1>QuizChamp</h1>
+        <p>Learn. Practice. Achieve.</p>
+    </div>
+    <span class="badge">Student Portal</span>
+</header>
+
+<main>
+
+    <!-- CATEGORY AND TOPIC SELECTION -->
+    <section class="panel" id="setupPanel">
+        <h2>Take a Quiz</h2>
+
+        <p class="muted">
+            Choose a category and topic to test your knowledge.
+        </p>
+
+        <label for="category">Choose Category</label>
+        <select id="category">
+            <option value="">Loading categories...</option>
+        </select>
+
+        <label for="topic">Choose Topic</label>
+        <select id="topic" disabled>
+            <option value="">Select a category first</option>
+        </select>
+
+        <div class="actions">
+            <button id="startButton" type="button" disabled>
+                Start Quiz
+            </button>
+
+            <button id="refreshButton" class="secondary" type="button">
+                Refresh
+            </button>
+        </div>
+
+        <p id="setupMessage" class="message" role="status"></p>
+    </section>
+
+    <!-- QUIZ QUESTIONS -->
+    <section class="panel hidden" id="quizPanel">
+        <h2 id="quizTitle">Your Quiz</h2>
+
+        <p id="progressText" class="muted"></p>
+
+        <div class="progress">
+            <div id="progressBar"></div>
+        </div>
+
+        <form id="quizForm">
+            <div id="questionContainer"></div>
+
+            <div class="actions">
+                <button id="submitButton" type="submit">
+                    Submit Quiz
+                </button>
+
+                <button id="backButton" class="secondary" type="button">
+                    Back
+                </button>
+            </div>
+
+            <p id="quizMessage" class="message" role="status"></p>
+        </form>
+    </section>
+
+    <!-- QUIZ RESULT -->
+    <section class="panel hidden" id="resultPanel">
+        <h2>Quiz Completed!</h2>
+
+        <p class="muted">Here is your result.</p>
+
+        <p id="score" class="score"></p>
+
+        <div id="resultDetails" class="result-box"></div>
+
+        <p id="resultMessage" class="muted"></p>
+
+        <div class="actions">
+            <button id="retryButton" type="button">
+                Choose Another Quiz
+            </button>
+
+            <button id="leaderboardButton" class="secondary" type="button">
+                View Leaderboard
+            </button>
+        </div>
+    </section>
+
+</main>
+
+<footer>QuizChamp © 2026</footer>
+
+<script>
+"use strict";
+
+const $ = id => document.getElementById(id);
+
+let categories = [];
+let topics = [];
+let questions = [];
+let currentTopicName = "";
+let submitting = false;
+
+/* API HELPER */
+
+async function apiGet(url) {
+    const response = await fetch(url, {
+        method: "GET",
+        credentials: "same-origin",
+        headers: {
+            "Accept": "application/json"
+        }
+    });
+
+    if (response.status === 401) {
+        throw new Error("Please log in to your student account first.");
+    }
+
+    if (response.status === 403) {
+        throw new Error("Access denied. Please check your account permissions.");
+    }
+
+    if (!response.ok) {
+        throw new Error("Request failed with HTTP " + response.status);
+    }
+
+    return response.json();
+}
+
+/* MESSAGE HELPER */
+
+function showMessage(id, text, type = "") {
+    const element = $(id);
+    element.textContent = text;
+    element.className = "message" + (type ? " " + type : "");
+}
+
+/* DROPDOWN HELPER */
+
+function fillDropdown(element, items, placeholder) {
+    element.replaceChildren(new Option(placeholder, ""));
+
+    items.forEach(item => {
+        element.add(new Option(item.name, String(item.id)));
+    });
+}
+
+/* LOAD CATEGORIES */
+
+async function loadCategories() {
+    $("category").disabled = true;
+    $("topic").disabled = true;
+    $("startButton").disabled = true;
+
+    $("category").replaceChildren(
+        new Option("Loading categories...", "")
+    );
+
+    $("topic").replaceChildren(
+        new Option("Select a category first", "")
+    );
+
+    showMessage("setupMessage", "Loading categories...");
+
+    try {
+        const data = await apiGet("/api/student/categories");
+
+        categories = Array.isArray(data) ? data : [];
+
+        fillDropdown(
+            $("category"),
+            categories,
+            "Choose a category"
+        );
+
+        $("category").disabled = false;
+
+        if (categories.length === 0) {
+            showMessage(
+                "setupMessage",
+                "No categories found. Ask the administrator to add categories."
+            );
+        } else {
+            showMessage(
+                "setupMessage",
+                "Categories loaded. Choose a category.",
+                "success"
+            );
+        }
+    } catch (error) {
+        $("category").replaceChildren(
+            new Option("Unable to load categories", "")
+        );
+
+        showMessage("setupMessage", error.message, "error");
+    }
+}
+
+/* LOAD TOPICS */
+
+async function loadTopics(categoryId) {
+    topics = [];
+    $("topic").disabled = true;
+    $("startButton").disabled = true;
+
+    fillDropdown(
+        $("topic"),
+        [],
+        categoryId ? "Loading topics..." : "Select a category first"
+    );
+
+    if (!categoryId) {
+        showMessage("setupMessage", "Choose a category.");
+        return;
+    }
+
+    try {
+        const data = await apiGet(
+            "/api/student/topics?categoryId=" +
+            encodeURIComponent(categoryId)
+        );
+
+        topics = Array.isArray(data) ? data : [];
+
+        fillDropdown($("topic"), topics, "Choose a topic");
+        $("topic").disabled = false;
+
+        showMessage(
+            "setupMessage",
+            topics.length
+                ? "Topics loaded. Choose a topic."
+                : "No topics found in this category.",
+            topics.length ? "success" : ""
+        );
+    } catch (error) {
+        fillDropdown($("topic"), [], "Unable to load topics");
+        showMessage("setupMessage", error.message, "error");
+    }
+}
+
+/* CATEGORY SELECTION */
+
+$("category").addEventListener("change", async () => {
+    hideQuizSections();
+    await loadTopics($("category").value);
+});
+
+/* TOPIC SELECTION */
+
+$("topic").addEventListener("change", () => {
+    $("startButton").disabled = !$("topic").value;
+});
+
+/* REFRESH */
+
+$("refreshButton").addEventListener("click", loadCategories);
+
+/* HIDE QUIZ AND RESULT */
+
+function hideQuizSections() {
+    $("quizPanel").classList.add("hidden");
+    $("resultPanel").classList.add("hidden");
+}
+
+/* START QUIZ */
+
+$("startButton").addEventListener("click", startQuiz);
+
+async function startQuiz() {
+    const topicId = $("topic").value;
+
+    if (!topicId) {
+        showMessage("setupMessage", "Please choose a topic first.", "error");
+        return;
+    }
+
+    const selectedTopic = topics.find(
+        topic => String(topic.id) === topicId
+    );
+
+    currentTopicName = selectedTopic ? selectedTopic.name : "Quiz";
+
+    $("startButton").disabled = true;
+    showMessage("setupMessage", "Loading quiz questions...");
+
+    try {
+        const data = await apiGet(
+            "/api/student/questions?topicId=" +
+            encodeURIComponent(topicId)
+        );
+
+        questions = Array.isArray(data) ? data : [];
+
+        if (questions.length === 0) {
+            showMessage(
+                "setupMessage",
+                "No questions are available for this topic.",
+                "error"
+            );
+            return;
+        }
+
+        $("quizTitle").textContent = currentTopicName;
+        $("quizForm").reset();
+        $("submitButton").disabled = false;
+        submitting = false;
+
+        renderQuestions();
+
+        $("setupPanel").classList.add("hidden");
+        $("resultPanel").classList.add("hidden");
+        $("quizPanel").classList.remove("hidden");
+
+        showMessage("quizMessage", "");
+
+        window.scrollTo({ top: 0, behavior: "smooth" });
+
+    } catch (error) {
+        showMessage("setupMessage", error.message, "error");
+    } finally {
+        $("startButton").disabled = !$("topic").value;
+    }
+}
+
+/* DISPLAY QUESTIONS */
+
+function renderQuestions() {
+    const container = $("questionContainer");
+    container.replaceChildren();
+
+    questions.forEach((question, index) => {
+        const card = document.createElement("article");
+        card.className = "question-card";
+
+        const heading = document.createElement("h3");
+        heading.textContent = (index + 1) + ". " + question.questionText;
+        card.appendChild(heading);
+
+        ["A", "B", "C", "D"].forEach(letter => {
+            const label = document.createElement("label");
+            label.className = "answer-option";
+
+            const input = document.createElement("input");
+            input.type = "radio";
+            input.name = "answer-" + question.id;
+            input.value = letter;
+            input.required = true;
+
+            const optionText = document.createElement("span");
+            optionText.textContent =
+                letter + ". " + (question["option" + letter] ?? "");
+
+            label.append(input, optionText);
+            card.appendChild(label);
+        });
+
+        container.appendChild(card);
+    });
+
+    $("progressText").textContent =
+        questions.length + (questions.length === 1 ? " question" : " questions");
+
+    $("progressBar").style.width = "0%";
+}
+
+/* TRACK ANSWER PROGRESS */
+
+$("quizForm").addEventListener("change", () => {
+    const answered = questions.filter(question =>
+        $("quizForm").querySelector(
+            'input[name="answer-' + question.id + '"]:checked'
+        )
+    ).length;
+
+    const percentage = questions.length
+        ? answered / questions.length * 100
+        : 0;
+
+    $("progressBar").style.width = percentage + "%";
+
+    $("progressText").textContent =
+        answered + " of " + questions.length + " questions answered";
+});
+
+/* SUBMIT QUIZ AND DISPLAY RESULT */
+
+$("quizForm").addEventListener("submit", async event => {
+    event.preventDefault();
+
+    if (submitting || questions.length === 0) {
+        return;
+    }
+
+    const answers = questions.map(question => {
+        const selected = $("quizForm").querySelector(
+            'input[name="answer-' + question.id + '"]:checked'
+        );
+
+        return {
+            questionId: question.id,
+            selectedOption: selected ? selected.value : null
+        };
+    });
+
+    const unanswered = answers.filter(
+        answer => answer.selectedOption === null
+    ).length;
+
+    if (unanswered > 0) {
+        showMessage(
+            "quizMessage",
+            "Please answer all questions. Unanswered: " + unanswered,
+            "error"
+        );
+        return;
+    }
+
+    submitting = true;
+    $("submitButton").disabled = true;
+
+    showMessage(
+        "quizMessage",
+        "Submitting your answers and calculating your score..."
+    );
+
+    try {
+        const response = await fetch("/api/student/quiz/submit", {
+            method: "POST",
+            credentials: "same-origin",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            },
+            body: JSON.stringify({
+                topicId: Number($("topic").value),
+                answers: answers
+            })
+        });
+
+        const data = await response.json().catch(() => ({}));
+
+        if (!response.ok) {
+            throw new Error(
+                data.error || "Submission failed. HTTP " + response.status
+            );
+        }
+
+        const score = Number(data.score);
+        const total = Number(data.totalQuestions);
+        const percentage = Number(data.percentage);
+
+        $("score").textContent = score + " / " + total;
+
+        $("resultDetails").textContent =
+            "Topic: " + currentTopicName +
+            "\nScore: " + score + " out of " + total +
+            "\nPercentage: " + percentage.toFixed(2) + "%";
+
+        $("resultDetails").style.whiteSpace = "pre-line";
+
+        $("resultMessage").textContent =
+            percentage >= 80
+                ? "Excellent work! Keep it up."
+                : percentage >= 50
+                    ? "Good effort! Keep practising."
+                    : "Keep practising. You can improve your score!";
+
+        $("quizPanel").classList.add("hidden");
+        $("setupPanel").classList.add("hidden");
+        $("resultPanel").classList.remove("hidden");
+
+        window.scrollTo({ top: 0, behavior: "smooth" });
+
+    } catch (error) {
+        showMessage("quizMessage", error.message, "error");
+        $("submitButton").disabled = false;
+    } finally {
+        submitting = false;
+    }
+});
+
+/* BACK BUTTON */
+
+$("backButton").addEventListener("click", () => {
+    $("quizPanel").classList.add("hidden");
+    $("setupPanel").classList.remove("hidden");
+
+    submitting = false;
+
+    window.scrollTo({ top: 0, behavior: "smooth" });
+});
+
+/* CHOOSE ANOTHER QUIZ */
+
+$("retryButton").addEventListener("click", () => {
+    hideQuizSections();
+
+    $("setupPanel").classList.remove("hidden");
+    $("quizForm").reset();
+
+    questions = [];
+    submitting = false;
+
+    showMessage("setupMessage", "Choose another topic to begin.");
+
+    window.scrollTo({ top: 0, behavior: "smooth" });
+});
+
+/* OPEN LEADERBOARD */
+
+$("leaderboardButton").addEventListener("click", () => {
+    window.location.href = "/leaderboard.html";
+});
+
+/* INITIALIZE */
+
+loadCategories();
+</script>
+
+</body>
+</html>

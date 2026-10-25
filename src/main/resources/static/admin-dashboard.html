@@ -1,0 +1,885 @@
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>QuizChamp | Admin Dashboard</title>
+
+<style>
+:root {
+    --purple: #6548dc;
+    --purple-dark: #5033bd;
+    --purple-light: #f0edff;
+    --bg: #f7f7fc;
+    --white: #fff;
+    --text: #25233a;
+    --muted: #77758e;
+    --border: #e9e7f2;
+    --green: #188653;
+    --red: #c03945;
+}
+* { box-sizing: border-box; }
+body {
+    margin: 0;
+    font-family: Inter, Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+}
+button, input, textarea, select { font: inherit; }
+button { cursor: pointer; border: 0; border-radius: 8px; padding: 10px 14px; font-weight: 600; }
+button:disabled { opacity: .6; cursor: not-allowed; }
+.layout { display: flex; min-height: 100vh; }
+.sidebar {
+    width: 245px; flex-shrink: 0; background: #fff;
+    border-right: 1px solid var(--border); padding: 25px 16px;
+}
+.brand { display: flex; align-items: center; gap: 10px; padding: 0 10px 30px; }
+.brand-mark {
+    background: var(--purple); color: #fff; border-radius: 12px;
+    width: 42px; height: 42px; display: grid; place-items: center;
+    font-size: 21px; font-weight: 800;
+}
+.brand h2 { margin: 0; font-size: 19px; }
+.brand small { color: var(--muted); }
+.nav-label { margin: 16px 12px 8px; color: #9996ac; font-size: 11px; font-weight: 700; letter-spacing: 1px; }
+.nav-btn {
+    width: 100%; text-align: left; background: transparent;
+    color: #66647b; margin: 3px 0; padding: 12px;
+    display: flex; gap: 11px; align-items: center;
+}
+.nav-btn:hover, .nav-btn.active { background: var(--purple-light); color: var(--purple-dark); }
+.sidebar-bottom { margin-top: 35px; border-top: 1px solid var(--border); padding-top: 18px; }
+.main { min-width: 0; flex: 1; }
+.topbar {
+    background: #fff; border-bottom: 1px solid var(--border);
+    padding: 18px 30px; display: flex; align-items: center;
+    justify-content: space-between; gap: 15px;
+}
+.topbar h1 { font-size: 21px; margin: 0; }
+.topbar p { margin: 5px 0 0; font-size: 13px; color: var(--muted); }
+.admin-pill { background: var(--purple-light); color: var(--purple-dark); padding: 9px 12px; border-radius: 20px; font-size: 13px; font-weight: 700; }
+.content { max-width: 1450px; margin: auto; padding: 28px; }
+.page { display: none; }
+.page.active { display: block; }
+.page-heading { margin-bottom: 22px; }
+.page-heading h2 { margin: 0 0 7px; font-size: 24px; }
+.muted { color: var(--muted); line-height: 1.5; }
+.stats {
+    display: grid; grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 17px; margin-bottom: 25px;
+}
+.stat, .panel {
+    background: #fff; border: 1px solid var(--border);
+    border-radius: 14px; padding: 21px;
+}
+.stat-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.stat-label { color: var(--muted); font-size: 13px; }
+.stat-icon {
+    width: 40px; height: 40px; border-radius: 12px;
+    display: grid; place-items: center; background: var(--purple-light); color: var(--purple);
+    font-size: 19px;
+}
+.stat-number { font-size: 30px; font-weight: 750; margin-top: 16px; }
+.stat-foot { color: var(--muted); font-size: 12px; margin-top: 5px; }
+.panel { margin-bottom: 22px; }
+.panel-head {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 12px; flex-wrap: wrap; margin-bottom: 17px;
+}
+.panel-head h3 { margin: 0; font-size: 17px; }
+.form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 17px; }
+.field.full { grid-column: 1 / -1; }
+label { display: block; margin: 15px 0 7px; font-size: 13px; font-weight: 700; }
+input, textarea, select {
+    width: 100%; padding: 12px; border: 1px solid #dedbea;
+    border-radius: 8px; background: #fff; color: var(--text);
+    outline: none;
+}
+input:focus, textarea:focus, select:focus { border-color: var(--purple); box-shadow: 0 0 0 3px #6548dc18; }
+textarea { min-height: 90px; resize: vertical; }
+.primary { background: var(--purple); color: white; }
+.primary:hover { background: var(--purple-dark); }
+.secondary { background: var(--purple-light); color: var(--purple-dark); }
+.danger { background: #fff0f0; color: var(--red); }
+.neutral { background: #f1f0f6; color: #55536a; }
+.actions { display: flex; flex-wrap: wrap; gap: 9px; margin-top: 18px; }
+.message { min-height: 20px; margin: 12px 0 0; font-size: 13px; overflow-wrap: anywhere; }
+.message.error { color: var(--red); }
+.message.success { color: var(--green); }
+.toolbar { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 15px; }
+.toolbar input, .toolbar select { flex: 1; min-width: 180px; }
+.items { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 13px; }
+.item {
+    min-width: 0; border: 1px solid var(--border); border-radius: 11px;
+    padding: 16px; background: #fff;
+}
+.item h4 { margin: 0 0 8px; font-size: 15px; overflow-wrap: anywhere; }
+.item p { margin: 7px 0; font-size: 13px; overflow-wrap: anywhere; white-space: pre-wrap; }
+.item-meta { color: var(--muted); font-size: 12px !important; }
+.item-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 13px; }
+.item-actions button { padding: 8px 11px; font-size: 12px; }
+.tag { display: inline-block; background: var(--purple-light); color: var(--purple-dark); padding: 5px 8px; border-radius: 6px; font-size: 11px; margin-bottom: 9px; }
+.empty { color: var(--muted); padding: 20px 0; text-align: center; }
+.question-option { margin: 5px 0; font-size: 13px; }
+.correct { color: var(--green); font-weight: 700; }
+.mobile-menu { display: none; background: var(--purple-light); color: var(--purple-dark); }
+footer { text-align: center; color: var(--muted); font-size: 12px; padding: 22px; }
+
+@media (max-width: 950px) {
+    .sidebar { width: 205px; }
+    .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 650px) {
+    .layout { display: block; }
+    .sidebar { display: none; width: 100%; border-right: 0; border-bottom: 1px solid var(--border); }
+    .sidebar.open { display: block; }
+    .topbar { padding: 15px; }
+    .topbar h1 { font-size: 17px; }
+    .content { padding: 16px; }
+    .stats { gap: 10px; }
+    .stat { padding: 14px; }
+    .stat-number { font-size: 24px; }
+    .items, .form-grid { grid-template-columns: 1fr; }
+    .field.full { grid-column: auto; }
+    .mobile-menu { display: inline-block; }
+}
+</style>
+</head>
+
+<body>
+<div class="layout">
+    <aside class="sidebar" id="sidebar">
+        <div class="brand">
+            <div class="brand-mark">Q</div>
+            <div><h2>QuizChamp</h2><small>Admin workspace</small></div>
+        </div>
+
+        <div class="nav-label">WORKSPACE</div>
+        <button class="nav-btn active" data-page="overview">▦ &nbsp; Overview</button>
+        <button class="nav-btn" data-page="categories">▤ &nbsp; Categories</button>
+        <button class="nav-btn" data-page="topics">▧ &nbsp; Topics</button>
+        <button class="nav-btn" data-page="questions">☷ &nbsp; Questions</button>
+
+        <div class="nav-label">ACCOUNT</div>
+        <button class="nav-btn" id="logoutButton">↪ &nbsp; Log out</button>
+
+        <div class="sidebar-bottom muted" style="font-size:12px;padding-left:10px">
+            QuizChamp<br>Admin control panel
+        </div>
+    </aside>
+
+    <div class="main">
+        <header class="topbar">
+            <div style="display:flex;align-items:center;gap:12px">
+                <button class="mobile-menu" id="mobileMenu" aria-label="Toggle menu">☰</button>
+                <div>
+                    <h1 id="topTitle">Dashboard Overview</h1>
+                    <p>Manage your quiz content in one place.</p>
+                </div>
+            </div>
+            <span class="admin-pill">● Administrator</span>
+        </header>
+
+        <main class="content">
+            <!-- OVERVIEW -->
+            <section class="page active" id="page-overview">
+                <div class="page-heading">
+                    <h2>Welcome back! 👋</h2>
+                    <p class="muted">Here is your QuizChamp content overview.</p>
+                </div>
+
+                <div class="stats">
+                    <div class="stat">
+                        <div class="stat-top"><span class="stat-label">Categories</span><span class="stat-icon">▤</span></div>
+                        <div class="stat-number" id="statCategories">—</div>
+                        <div class="stat-foot">Saved quiz categories</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-top"><span class="stat-label">Topics</span><span class="stat-icon">▧</span></div>
+                        <div class="stat-number" id="statTopics">—</div>
+                        <div class="stat-foot">Organized learning topics</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-top"><span class="stat-label">Questions</span><span class="stat-icon">☷</span></div>
+                        <div class="stat-number" id="statQuestions">—</div>
+                        <div class="stat-foot">Multiple-choice questions</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-top"><span class="stat-label">Status</span><span class="stat-icon">✓</span></div>
+                        <div class="stat-number" style="font-size:22px">Ready</div>
+                        <div class="stat-foot">Admin workspace</div>
+                    </div>
+                </div>
+
+                <div class="panel">
+                    <div class="panel-head">
+                        <h3>Quick actions</h3>
+                    </div>
+                    <p class="muted">Choose what you want to manage.</p>
+                    <div class="actions">
+                        <button class="primary" data-goto="categories">+ Add Category</button>
+                        <button class="secondary" data-goto="topics">+ Add Topic</button>
+                        <button class="secondary" data-goto="questions">+ Add Question</button>
+                    </div>
+                    <p id="overviewMessage" class="message"></p>
+                </div>
+            </section>
+
+            <!-- CATEGORIES -->
+            <section class="page" id="page-categories">
+                <div class="page-heading">
+                    <h2>Categories</h2>
+                    <p class="muted">Create and organize your quiz subjects.</p>
+                </div>
+                <div class="panel">
+                    <div class="panel-head"><h3 id="categoryFormTitle">Add category</h3></div>
+                    <form id="categoryForm">
+                        <input type="hidden" id="categoryId">
+                        <div class="form-grid">
+                            <div class="field full">
+                                <label for="categoryName">Category name</label>
+                                <input id="categoryName" maxlength="100" placeholder="e.g. Data Structure and Algorithm" required>
+                            </div>
+                            <div class="field full">
+                                <label for="categoryDescription">Description</label>
+                                <textarea id="categoryDescription" maxlength="500" placeholder="Describe this category"></textarea>
+                            </div>
+                        </div>
+                        <div class="actions">
+                            <button class="primary" id="categorySave" type="submit">Save category</button>
+                            <button class="neutral" id="categoryCancel" type="button" hidden>Cancel edit</button>
+                            <button class="secondary" id="categoryRefresh" type="button">Refresh</button>
+                        </div>
+                        <p id="categoryMessage" class="message" role="status"></p>
+                    </form>
+                </div>
+                <div class="panel">
+                    <div class="panel-head"><h3>Saved categories</h3></div>
+                    <div class="toolbar"><input id="categorySearch" placeholder="Search categories..."></div>
+                    <div id="categoryList" class="items"><p class="empty">Loading categories...</p></div>
+                </div>
+            </section>
+
+            <!-- TOPICS -->
+            <section class="page" id="page-topics">
+                <div class="page-heading">
+                    <h2>Topics</h2>
+                    <p class="muted">Organize topics inside each category.</p>
+                </div>
+                <div class="panel">
+                    <div class="panel-head"><h3 id="topicFormTitle">Add topic</h3></div>
+                    <form id="topicForm">
+                        <input type="hidden" id="topicId">
+                        <div class="form-grid">
+                            <div class="field full">
+                                <label for="topicCategory">Category</label>
+                                <select id="topicCategory" required><option value="">Select a category</option></select>
+                            </div>
+                            <div class="field full">
+                                <label for="topicName">Topic name</label>
+                                <input id="topicName" maxlength="100" placeholder="e.g. Arrays" required>
+                            </div>
+                            <div class="field full">
+                                <label for="topicDescription">Description</label>
+                                <textarea id="topicDescription" maxlength="500" placeholder="Describe this topic"></textarea>
+                            </div>
+                        </div>
+                        <div class="actions">
+                            <button class="primary" id="topicSave" type="submit">Save topic</button>
+                            <button class="neutral" id="topicCancel" type="button" hidden>Cancel edit</button>
+                            <button class="secondary" id="topicRefresh" type="button">Refresh</button>
+                        </div>
+                        <p id="topicMessage" class="message" role="status"></p>
+                    </form>
+                </div>
+                <div class="panel">
+                    <div class="panel-head"><h3>Saved topics</h3></div>
+                    <div class="toolbar"><input id="topicSearch" placeholder="Search topics..."></div>
+                    <div id="topicList" class="items"><p class="empty">Loading topics...</p></div>
+                </div>
+            </section>
+
+            <!-- QUESTIONS -->
+            <section class="page" id="page-questions">
+                <div class="page-heading">
+                    <h2>Questions</h2>
+                    <p class="muted">Create and manage four-option quiz questions.</p>
+                </div>
+                <div class="panel">
+                    <div class="panel-head"><h3 id="questionFormTitle">Add question</h3></div>
+                    <form id="questionForm">
+                        <input type="hidden" id="questionId">
+                        <label for="questionTopic">Topic</label>
+                        <select id="questionTopic" required><option value="">Select a topic</option></select>
+
+                        <label for="questionText">Question text</label>
+                        <textarea id="questionText" maxlength="1000" placeholder="Enter your question" required></textarea>
+
+                        <div class="form-grid">
+                            <div class="field">
+                                <label for="optionA">Option A</label>
+                                <input id="optionA" maxlength="500" required>
+                            </div>
+                            <div class="field">
+                                <label for="optionB">Option B</label>
+                                <input id="optionB" maxlength="500" required>
+                            </div>
+                            <div class="field">
+                                <label for="optionC">Option C</label>
+                                <input id="optionC" maxlength="500" required>
+                            </div>
+                            <div class="field">
+                                <label for="optionD">Option D</label>
+                                <input id="optionD" maxlength="500" required>
+                            </div>
+                        </div>
+
+                        <label for="correctOption">Correct answer</label>
+                        <select id="correctOption" required>
+                            <option value="">Choose correct option</option>
+                            <option value="A">Option A</option>
+                            <option value="B">Option B</option>
+                            <option value="C">Option C</option>
+                            <option value="D">Option D</option>
+                        </select>
+
+                        <div class="actions">
+                            <button class="primary" id="questionSave" type="submit">Save question</button>
+                            <button class="neutral" id="questionCancel" type="button" hidden>Cancel edit</button>
+                            <button class="secondary" id="questionRefresh" type="button">Refresh</button>
+                        </div>
+                        <p id="questionMessage" class="message" role="status"></p>
+                    </form>
+                </div>
+                <div class="panel">
+                    <div class="panel-head"><h3>Saved questions</h3></div>
+                    <div class="toolbar">
+                        <input id="questionSearch" placeholder="Search questions...">
+                        <select id="questionFilterTopic"><option value="">All topics</option></select>
+                    </div>
+                    <div id="questionList" class="items"><p class="empty">Loading questions...</p></div>
+                </div>
+            </section>
+        </main>
+        <footer>QuizChamp © 2026 · Admin Workspace</footer>
+    </div>
+</div>
+
+<script>
+"use strict";
+
+const state = {
+    categories: [],
+    topics: [],
+    questions: [],
+    page: "overview"
+};
+
+const $ = id => document.getElementById(id);
+
+function setMessage(id, text, isError = false) {
+    const element = $(id);
+    element.textContent = text || "";
+    element.className = "message" + (text ? (isError ? " error" : " success") : "");
+}
+
+async function apiRequest(url, options = {}) {
+    const response = await fetch(url, {
+        credentials: "same-origin",
+        ...options,
+        headers: {
+            ...(options.body ? {"Content-Type": "application/json"} : {}),
+            ...(options.headers || {})
+        }
+    });
+
+    if (response.status === 401 || response.status === 403) {
+        throw new Error("Access denied. Sign in again with your administrator account.");
+    }
+
+    if (response.status === 204) return null;
+
+    const contentType = response.headers.get("content-type") || "";
+    const data = contentType.includes("application/json")
+        ? await response.json()
+        : await response.text();
+
+    if (!response.ok) {
+        throw new Error(
+            (data && data.error) ||
+            (typeof data === "string" && data) ||
+            "The request failed. Please try again."
+        );
+    }
+    return data;
+}
+
+function escapeText(value) {
+    return String(value ?? "");
+}
+
+function makeElement(tag, className, text) {
+    const element = document.createElement(tag);
+    if (className) element.className = className;
+    if (text !== undefined) element.textContent = escapeText(text);
+    return element;
+}
+
+function makeButton(text, className, handler) {
+    const button = makeElement("button", className, text);
+    button.type = "button";
+    button.addEventListener("click", handler);
+    return button;
+}
+
+function showPage(page) {
+    state.page = page;
+    document.querySelectorAll(".page").forEach(el =>
+        el.classList.toggle("active", el.id === "page-" + page)
+    );
+    document.querySelectorAll("[data-page]").forEach(button =>
+        button.classList.toggle("active", button.dataset.page === page)
+    );
+
+    const titles = {
+        overview: "Dashboard Overview",
+        categories: "Category Management",
+        topics: "Topic Management",
+        questions: "Question Management"
+    };
+    $("topTitle").textContent = titles[page] || "QuizChamp";
+
+    $("sidebar").classList.remove("open");
+    window.scrollTo({top: 0, behavior: "smooth"});
+}
+
+document.querySelectorAll("[data-page]").forEach(button => {
+    button.addEventListener("click", () => showPage(button.dataset.page));
+});
+document.querySelectorAll("[data-goto]").forEach(button => {
+    button.addEventListener("click", () => showPage(button.dataset.goto));
+});
+$("mobileMenu").addEventListener("click", () => $("sidebar").classList.toggle("open"));
+
+$("logoutButton").addEventListener("click", async () => {
+    try {
+        await fetch("/logout", {method: "POST", credentials: "same-origin"});
+    } finally {
+        window.location.href = "/admin.html";
+    }
+});
+
+function updateStats() {
+    $("statCategories").textContent = state.categories.length;
+    $("statTopics").textContent = state.topics.length;
+    $("statQuestions").textContent = state.questions.length;
+}
+
+function fillSelect(selectId, items, placeholder, selectedValue = "") {
+    const select = $(selectId);
+    select.replaceChildren();
+    const first = makeElement("option", "", placeholder);
+    first.value = "";
+    select.appendChild(first);
+
+    items.forEach(item => {
+        const option = makeElement("option", "", item.name);
+        option.value = item.id;
+        if (String(item.id) === String(selectedValue)) option.selected = true;
+        select.appendChild(option);
+    });
+}
+
+async function loadCategories() {
+    state.categories = await apiRequest("/api/admin/categories");
+    if (!Array.isArray(state.categories)) state.categories = [];
+    fillSelect("topicCategory", state.categories, "Select a category");
+    renderCategories();
+    updateStats();
+}
+
+async function loadTopics() {
+    state.topics = await apiRequest("/api/admin/topics");
+    if (!Array.isArray(state.topics)) state.topics = [];
+    fillSelect("questionTopic", state.topics, "Select a topic");
+    fillSelect("questionFilterTopic", state.topics, "All topics");
+    renderTopics();
+    updateStats();
+}
+
+async function loadQuestions() {
+    state.questions = await apiRequest("/api/admin/questions");
+    if (!Array.isArray(state.questions)) state.questions = [];
+    renderQuestions();
+    updateStats();
+}
+
+function renderCategories() {
+    const list = $("categoryList");
+    list.replaceChildren();
+    const search = $("categorySearch").value.trim().toLowerCase();
+    const items = state.categories.filter(c =>
+        (c.name || "").toLowerCase().includes(search) ||
+        (c.description || "").toLowerCase().includes(search)
+    );
+
+    if (!items.length) {
+        list.appendChild(makeElement("p", "empty",
+            state.categories.length ? "No matching categories." : "No categories yet. Add one above."));
+        return;
+    }
+
+    items.forEach(category => {
+        const card = makeElement("article", "item");
+        card.appendChild(makeElement("span", "tag", "CATEGORY"));
+        card.appendChild(makeElement("h4", "", category.name));
+        card.appendChild(makeElement("p", "muted", category.description || "No description"));
+        card.appendChild(makeElement("p", "item-meta", "ID: " + category.id));
+
+        const actions = makeElement("div", "item-actions");
+        actions.append(
+            makeButton("Edit", "secondary", () => editCategory(category)),
+            makeButton("Delete", "danger", () => deleteCategory(category))
+        );
+        card.appendChild(actions);
+        list.appendChild(card);
+    });
+}
+
+function editCategory(category) {
+    $("categoryId").value = category.id;
+    $("categoryName").value = category.name || "";
+    $("categoryDescription").value = category.description || "";
+    $("categoryFormTitle").textContent = "Edit category";
+    $("categorySave").textContent = "Update category";
+    $("categoryCancel").hidden = false;
+    setMessage("categoryMessage", "");
+    showPage("categories");
+    $("categoryName").focus();
+}
+
+function resetCategoryForm() {
+    $("categoryForm").reset();
+    $("categoryId").value = "";
+    $("categoryFormTitle").textContent = "Add category";
+    $("categorySave").textContent = "Save category";
+    $("categoryCancel").hidden = true;
+}
+
+$("categoryForm").addEventListener("submit", async event => {
+    event.preventDefault();
+    const id = $("categoryId").value;
+    const payload = {
+        name: $("categoryName").value.trim(),
+        description: $("categoryDescription").value.trim()
+    };
+
+    try {
+        await apiRequest(id ? `/api/admin/categories/${id}` : "/api/admin/categories", {
+            method: id ? "PUT" : "POST",
+            body: JSON.stringify(payload)
+        });
+        resetCategoryForm();
+        await loadCategories();
+        await loadTopics();
+        setMessage("categoryMessage", id ? "Category updated." : "Category added.");
+    } catch (error) {
+        setMessage("categoryMessage", error.message, true);
+    }
+});
+
+$("categoryCancel").addEventListener("click", () => {
+    resetCategoryForm();
+    setMessage("categoryMessage", "");
+});
+$("categoryRefresh").addEventListener("click", async () => {
+    try {
+        await loadCategories();
+        setMessage("categoryMessage", "Categories refreshed.");
+    } catch (error) {
+        setMessage("categoryMessage", error.message, true);
+    }
+});
+$("categorySearch").addEventListener("input", renderCategories);
+
+async function deleteCategory(category) {
+    if (!confirm(`Delete category "${category.name}"? This may fail if it still contains topics.`)) return;
+    try {
+        await apiRequest(`/api/admin/categories/${category.id}`, {method: "DELETE"});
+        await loadCategories();
+        await loadTopics();
+        setMessage("categoryMessage", "Category deleted.");
+    } catch (error) {
+        setMessage("categoryMessage", error.message, true);
+        showPage("categories");
+    }
+}
+
+function renderTopics() {
+    const list = $("topicList");
+    list.replaceChildren();
+    const search = $("topicSearch").value.trim().toLowerCase();
+    const items = state.topics.filter(topic =>
+        (topic.name || "").toLowerCase().includes(search) ||
+        (topic.description || "").toLowerCase().includes(search) ||
+        ((topic.category && topic.category.name) || "").toLowerCase().includes(search)
+    );
+
+    if (!items.length) {
+        list.appendChild(makeElement("p", "empty",
+            state.topics.length ? "No matching topics." : "No topics yet. Add one above."));
+        return;
+    }
+
+    items.forEach(topic => {
+        const card = makeElement("article", "item");
+        card.appendChild(makeElement("span", "tag",
+            topic.category ? topic.category.name : "TOPIC"));
+        card.appendChild(makeElement("h4", "", topic.name));
+        card.appendChild(makeElement("p", "muted", topic.description || "No description"));
+        card.appendChild(makeElement("p", "item-meta", "Topic ID: " + topic.id));
+
+        const actions = makeElement("div", "item-actions");
+        actions.append(
+            makeButton("Edit", "secondary", () => editTopic(topic)),
+            makeButton("Delete", "danger", () => deleteTopic(topic))
+        );
+        card.appendChild(actions);
+        list.appendChild(card);
+    });
+}
+
+function editTopic(topic) {
+    $("topicId").value = topic.id;
+    $("topicName").value = topic.name || "";
+    $("topicDescription").value = topic.description || "";
+    $("topicCategory").value = topic.category ? topic.category.id : "";
+    $("topicFormTitle").textContent = "Edit topic";
+    $("topicSave").textContent = "Update topic";
+    $("topicCancel").hidden = false;
+    setMessage("topicMessage", "");
+    showPage("topics");
+    $("topicName").focus();
+}
+
+function resetTopicForm() {
+    $("topicForm").reset();
+    $("topicId").value = "";
+    $("topicFormTitle").textContent = "Add topic";
+    $("topicSave").textContent = "Save topic";
+    $("topicCancel").hidden = true;
+}
+
+$("topicForm").addEventListener("submit", async event => {
+    event.preventDefault();
+    const id = $("topicId").value;
+    const categoryId = $("topicCategory").value;
+    if (!categoryId) {
+        setMessage("topicMessage", "Please select a category.", true);
+        return;
+    }
+    const payload = {
+        name: $("topicName").value.trim(),
+        description: $("topicDescription").value.trim(),
+        categoryId: Number(categoryId)
+    };
+
+    try {
+        await apiRequest(id ? `/api/admin/topics/${id}` : "/api/admin/topics", {
+            method: id ? "PUT" : "POST",
+            body: JSON.stringify(payload)
+        });
+        resetTopicForm();
+        await loadTopics();
+        await loadQuestions();
+        setMessage("topicMessage", id ? "Topic updated." : "Topic added.");
+    } catch (error) {
+        setMessage("topicMessage", error.message, true);
+    }
+});
+
+$("topicCancel").addEventListener("click", () => {
+    resetTopicForm();
+    setMessage("topicMessage", "");
+});
+$("topicRefresh").addEventListener("click", async () => {
+    try {
+        await loadTopics();
+        setMessage("topicMessage", "Topics refreshed.");
+    } catch (error) {
+        setMessage("topicMessage", error.message, true);
+    }
+});
+$("topicSearch").addEventListener("input", renderTopics);
+
+async function deleteTopic(topic) {
+    if (!confirm(`Delete topic "${topic.name}"?`)) return;
+    try {
+        await apiRequest(`/api/admin/topics/${topic.id}`, {method: "DELETE"});
+        await loadTopics();
+        setMessage("topicMessage", "Topic deleted.");
+    } catch (error) {
+        setMessage("topicMessage", error.message, true);
+        showPage("topics");
+    }
+}
+
+function renderQuestions() {
+    const list = $("questionList");
+    list.replaceChildren();
+    const search = $("questionSearch").value.trim().toLowerCase();
+    const topicFilter = $("questionFilterTopic").value;
+
+    const items = state.questions.filter(question => {
+        const topic = question.topic || {};
+        const matchesSearch =
+            (question.questionText || "").toLowerCase().includes(search) ||
+            [question.optionA, question.optionB, question.optionC, question.optionD]
+                .some(option => (option || "").toLowerCase().includes(search)) ||
+            (topic.name || "").toLowerCase().includes(search);
+
+        const matchesTopic = !topicFilter || String(topic.id) === String(topicFilter);
+        return matchesSearch && matchesTopic;
+    });
+
+    if (!items.length) {
+        list.appendChild(makeElement("p", "empty",
+            state.questions.length ? "No matching questions." : "No questions yet. Add one above."));
+        return;
+    }
+
+    items.forEach(question => {
+        const card = makeElement("article", "item");
+        const topicName = question.topic ? question.topic.name : "Unknown topic";
+        card.appendChild(makeElement("span", "tag", topicName));
+        card.appendChild(makeElement("h4", "", question.questionText));
+
+        ["A", "B", "C", "D"].forEach(letter => {
+            const option = makeElement("p", "question-option");
+            const isCorrect = question.correctOption === letter;
+            option.textContent = letter + ". " + (question["option" + letter] || "");
+            if (isCorrect) {
+                option.classList.add("correct");
+                option.textContent += " ✓ Correct answer";
+            }
+            card.appendChild(option);
+        });
+
+        card.appendChild(makeElement("p", "item-meta", "Question ID: " + question.id));
+        const actions = makeElement("div", "item-actions");
+        actions.append(
+            makeButton("Edit", "secondary", () => editQuestion(question)),
+            makeButton("Delete", "danger", () => deleteQuestion(question))
+        );
+        card.appendChild(actions);
+        list.appendChild(card);
+    });
+}
+
+function editQuestion(question) {
+    $("questionId").value = question.id;
+    $("questionTopic").value = question.topic ? question.topic.id : "";
+    $("questionText").value = question.questionText || "";
+    $("optionA").value = question.optionA || "";
+    $("optionB").value = question.optionB || "";
+    $("optionC").value = question.optionC || "";
+    $("optionD").value = question.optionD || "";
+    $("correctOption").value = question.correctOption || "";
+    $("questionFormTitle").textContent = "Edit question";
+    $("questionSave").textContent = "Update question";
+    $("questionCancel").hidden = false;
+    setMessage("questionMessage", "");
+    showPage("questions");
+    $("questionText").focus();
+}
+
+function resetQuestionForm() {
+    $("questionForm").reset();
+    $("questionId").value = "";
+    $("questionFormTitle").textContent = "Add question";
+    $("questionSave").textContent = "Save question";
+    $("questionCancel").hidden = true;
+}
+
+$("questionForm").addEventListener("submit", async event => {
+    event.preventDefault();
+    const id = $("questionId").value;
+    const topicId = $("questionTopic").value;
+
+    if (!topicId) {
+        setMessage("questionMessage", "Please select a topic.", true);
+        return;
+    }
+
+    const payload = {
+        questionText: $("questionText").value.trim(),
+        optionA: $("optionA").value.trim(),
+        optionB: $("optionB").value.trim(),
+        optionC: $("optionC").value.trim(),
+        optionD: $("optionD").value.trim(),
+        correctOption: $("correctOption").value,
+        topicId: Number(topicId)
+    };
+
+    try {
+        await apiRequest(id ? `/api/admin/questions/${id}` : "/api/admin/questions", {
+            method: id ? "PUT" : "POST",
+            body: JSON.stringify(payload)
+        });
+        resetQuestionForm();
+        await loadQuestions();
+        setMessage("questionMessage", id ? "Question updated." : "Question added successfully.");
+    } catch (error) {
+        setMessage("questionMessage", error.message, true);
+    }
+});
+
+$("questionCancel").addEventListener("click", () => {
+    resetQuestionForm();
+    setMessage("questionMessage", "");
+});
+$("questionRefresh").addEventListener("click", async () => {
+    try {
+        await loadQuestions();
+        setMessage("questionMessage", "Questions refreshed.");
+    } catch (error) {
+        setMessage("questionMessage", error.message, true);
+    }
+});
+$("questionSearch").addEventListener("input", renderQuestions);
+$("questionFilterTopic").addEventListener("change", renderQuestions);
+
+async function deleteQuestion(question) {
+    if (!confirm("Delete this question permanently?")) return;
+    try {
+        await apiRequest(`/api/admin/questions/${question.id}`, {method: "DELETE"});
+        await loadQuestions();
+        setMessage("questionMessage", "Question deleted.");
+    } catch (error) {
+        setMessage("questionMessage", error.message, true);
+        showPage("questions");
+    }
+}
+
+async function initializeDashboard() {
+    const results = await Promise.allSettled([
+        loadCategories(),
+        loadTopics(),
+        loadQuestions()
+    ]);
+
+    const failures = results.filter(result => result.status === "rejected");
+    if (failures.length) {
+        $("overviewMessage").textContent =
+            "Some data could not be loaded: " +
+            failures.map(result => result.reason.message).join(" | ");
+        $("overviewMessage").className = "message error";
+    }
+}
+
+initializeDashboard();
+</script>
+</body>
+</html>

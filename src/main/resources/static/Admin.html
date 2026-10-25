@@ -1,0 +1,287 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QuizChamp - Admin Login</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            font-family: Arial, sans-serif;
+            color: #201b3c;
+            background: linear-gradient(135deg, #f3f0ff, #e7eaff);
+        }
+
+        .login-card {
+            width: 100%;
+            max-width: 440px;
+            padding: 35px;
+            background: #fff;
+            border-radius: 20px;
+            box-shadow: 0 12px 40px rgba(35, 25, 90, 0.12);
+        }
+
+        .logo {
+            width: 58px;
+            height: 58px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 20px;
+            background: #7654e8;
+            color: #fff;
+            border-radius: 15px;
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        h1 {
+            margin: 0 0 10px;
+            font-size: 28px;
+        }
+
+        .subtitle {
+            color: #77758e;
+            line-height: 1.6;
+            margin-bottom: 25px;
+        }
+
+        label {
+            display: block;
+            margin-top: 18px;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        input {
+            display: block;
+            width: 100%;
+            margin-top: 8px;
+            padding: 14px;
+            border: 1px solid #ddd8ed;
+            border-radius: 10px;
+            font-size: 15px;
+            outline: none;
+        }
+
+        input:focus {
+            border-color: #7654e8;
+        }
+
+        button {
+            width: 100%;
+            margin-top: 25px;
+            padding: 14px;
+            border: none;
+            border-radius: 10px;
+            background: #7654e8;
+            color: white;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #6240d0;
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: wait;
+        }
+
+        #message {
+            display: none;
+            padding: 12px;
+            margin-top: 18px;
+            border-radius: 9px;
+            line-height: 1.5;
+            overflow-wrap: anywhere;
+        }
+
+        #message.error {
+            display: block;
+            background: #fff0f0;
+            color: #a32121;
+        }
+
+        #message.success {
+            display: block;
+            background: #eaf9ef;
+            color: #176b3a;
+        }
+
+        .back-link {
+            margin-top: 24px;
+            text-align: center;
+        }
+
+        .back-link a {
+            color: #7654e8;
+            text-decoration: none;
+        }
+
+        .back-link a:hover {
+            text-decoration: underline;
+        }
+
+        .note {
+            text-align: center;
+            color: #888;
+            font-size: 12px;
+            margin-top: 20px;
+        }
+
+        @media (max-width: 480px) {
+            .login-card {
+                padding: 25px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <main class="login-card">
+        <div class="logo">Q</div>
+
+        <h1>QuizChamp Admin</h1>
+
+        <p class="subtitle">
+            Welcome back! Sign in to access your administration dashboard.
+        </p>
+
+        <form id="adminForm">
+            <label for="email">Administrator Email</label>
+            <input
+                type="email"
+                id="email"
+                name="email"
+                placeholder="Enter administrator email"
+                autocomplete="username"
+                required
+            >
+
+            <label for="password">Password</label>
+            <input
+                type="password"
+                id="password"
+                name="password"
+                placeholder="Enter your password"
+                autocomplete="current-password"
+                required
+            >
+
+            <button type="submit" id="submitButton">
+                Sign In
+            </button>
+        </form>
+
+        <p id="message" role="status" aria-live="polite"></p>
+
+        <div class="back-link">
+            <a href="/">← Return to Student Website</a>
+        </div>
+
+        <p class="note">Authorized administrators only.</p>
+    </main>
+
+    <script>
+        const form = document.getElementById("adminForm");
+        const message = document.getElementById("message");
+        const button = document.getElementById("submitButton");
+
+        function showMessage(text, type) {
+            message.textContent = text;
+            message.className = type;
+        }
+
+        form.addEventListener("submit", async function (event) {
+            event.preventDefault();
+
+            button.disabled = true;
+            button.textContent = "Signing in...";
+            message.className = "";
+            message.textContent = "";
+
+            try {
+                const email = document.getElementById("email").value.trim();
+                const password = document.getElementById("password").value;
+
+                // Authenticate the user.
+                const response = await fetch("/api/auth/login", {
+                    method: "POST",
+                    credentials: "same-origin",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ email, password })
+                });
+
+                const data = await response.json().catch(() => ({}));
+
+                if (!response.ok) {
+                    throw new Error(
+                        data.error || "Login failed. Check your email and password."
+                    );
+                }
+
+                // Only administrators may continue.
+                if (
+                    !Array.isArray(data.role) ||
+                    !data.role.includes("ROLE_ADMIN")
+                ) {
+                    await fetch("/logout", {
+                        method: "POST",
+                        credentials: "same-origin"
+                    });
+
+                    throw new Error(
+                        "This account does not have administrator access."
+                    );
+                }
+
+                // Check that the protected dashboard endpoint is accessible.
+                const dashboardResponse = await fetch("/api/admin/dashboard", {
+                    method: "GET",
+                    credentials: "same-origin",
+                    headers: {
+                        "Accept": "application/json"
+                    }
+                });
+
+                if (!dashboardResponse.ok) {
+                    throw new Error(
+                        "Your login succeeded, but dashboard access failed " +
+                        "(HTTP " + dashboardResponse.status + ")."
+                    );
+                }
+
+                showMessage("Login successful. Opening dashboard...", "success");
+
+                // Open the dashboard page.
+                window.location.assign("/admin-dashboard.html");
+
+            } catch (error) {
+                showMessage(
+                    error.message || "Unable to sign in. Please try again.",
+                    "error"
+                );
+
+                button.disabled = false;
+                button.textContent = "Sign In";
+            }
+        });
+    </script>
+</body>
+</html>
